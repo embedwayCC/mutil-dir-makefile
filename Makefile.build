@@ -1,0 +1,27 @@
+﻿PHONY := build
+build :
+obj-y :=
+subdir-y :=
+include Makefile
+__subdir-y	:= $(patsubst %/,%,$(filter %/, $(obj-y)))
+subdir-y	+= $(__subdir-y)
+subdir_objs := $(foreach f,$(subdir-y),$(f)/built-in.o)
+cur_objs := $(filter-out %/, $(obj-y))
+dep_files := $(foreach f,$(cur_objs),.$(f).d)
+#dep_files := $(wildcard $(dep_files))
+#ifneq ($(dep_files),)
+#  include $(dep_files)
+#endif
+PHONY += $(subdir-y)
+build : $(subdir-y) built-in.o
+$(subdir-y):
+	echo "$(dep_files)+333333333333333"
+	make -C $@ -f $(TOPDIR)/Makefile.build
+built-in.o : $(cur_objs) $(subdir_objs)
+	echo "$(cur_objs) $(subdir_objs)+4444444444444"
+	$(LD) -r -o $@ $^
+dep_file = .$@.d
+%.o : %.c
+	echo "$(dep_file)+1111111111111"
+	$(CC) $(CFLAGS) -Wp,-MD,$(dep_file) -c -o $@ $<
+.PHONY : $(PHONY)
